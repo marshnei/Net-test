@@ -1,0 +1,38 @@
+---
+ -
+   name: top level play
+   hosts: r1.gns3.com
+   connection: local
+   gather_facts: no
+   vars:
+    cli:
+      host: r1.gns3.com
+      username: cisco
+      password: cisco
+      authorize: yes
+      auth_pass: cisco
+
+   tasks:
+    -
+      name: run show version and check to see if output contains IOS
+      ios_command:
+       commands:
+         - show version | inc IOS
+         - show ip interface brief | excl administratively
+         - show ip bgp sum | beg Neighbor
+         - ping 10.2.2.2
+      register: output_all
+    -
+      debug: var=output_all.stdout_lines
+    -
+      name: "********Proposed Next steps"
+      debug: msg="1----If BGP peer is down But link is up call M/S support tel:1"
+    -
+      debug: msg=" 2----If link is down call BT support tel:54321"
+    - name: compare configs
+      ios_config:
+        provider: "{{cli}}"
+        diff_against: intended
+        intended_config: "{{ lookup('file', '/root/backup/backup1.txt') }}"
+      diff: yes
+
